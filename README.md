@@ -3,4 +3,4 @@
 ## Features
 - Automatically clock out when exiting defined zones
 - Unlimited jobs
-- 0.00 Resmon at all times
+- Place a marker where the player should be able to toggle their duty, if they leave they automatically get removed. 
