@@ -9,13 +9,6 @@ local function IsOnDuty(job)
     return QBCore.Functions.GetPlayerData().job.name == job and QBCore.Functions.GetPlayerData().job.onduty
 end
 
-function EnterJobZone(job)
-    if not isJob(job) then return end
-    local onDuty = IsOnDuty(job)
-    if onDuty then return end
-    TriggerServerEvent('QBCore:ToggleDuty')
-end
-
 function ExitJobZone(job)
     if not isJob(job) then return end
     local onDuty = IsOnDuty(job)
@@ -29,7 +22,6 @@ CreateThread(function()
             points = zone.zone.points,
             thickness = zone.zone.thickness,
             debug = Config.Debug,
-            onEnter = function() EnterJobZone(zone.job) end,
             onExit = function() ExitJobZone(zone.job) end,
         })
     end
