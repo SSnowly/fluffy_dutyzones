@@ -23,6 +23,16 @@ return {
                     blue = 0,
                     opacity = 50,
                 }
+            },
+            blip = {
+                coords = vec3(370.6229, -612.3512, 28.8611),
+                enabled = true, -- enable/disable blip
+                label = 'UwuJob',
+                DutyRequired = true, -- only show blip if at least 1 player is on duty
+                sprite = 631,
+                color = 2,
+                scale = 0.8,
+                display = 4,
             }
     
         },
