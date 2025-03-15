@@ -25,25 +25,42 @@ CreateThread(function()
             debug = Config.Debug,
             onExit = function() ExitJobZone(zone.job) end
         })
-        local point = lib.points.new({
-            coords = zone.duty.coords,
-            distance = zone.duty.distance,
-        })
-        function point:nearby()
-            DrawMarker(zone.duty.marker.type, self.coords.x, self.coords.y, self.coords.z, 0.0, 0.0, 0.0, 0.0, 180.0, 0.0, 1.0, 1.0, 1.0, zone.duty.marker.red, zone.duty.marker.green, zone.duty.marker.blue, zone.duty.marker.opacity, false, true, 2, false, nil, nil, false)
-            if self.currentDistance < 1.5 then
-                if not lib.isTextUIOpen() then
-                    lib.showTextUI('[E] Toggle Duty')
+        if not zone.duty then return end
+        if zone.duty.useTarget then
+            local id = exports.ox_target:addSphereZone({
+                coords = zone.duty.coords,
+                radius = zone.duty.distance,
+                options = {
+                    {
+                        label = 'Toggle Duty',
+                        onSelect = function()
+                            TriggerServerEvent('QBCore:ToggleDuty')
+                        end
+                    }
+                }
+            })
+            zones[zone.job].duty = id
+        else
+            local point = lib.points.new({
+                coords = zone.duty.coords,
+                distance = zone.duty.distance,
+            })
+            function point:nearby()
+                DrawMarker(zone.duty.marker.type, self.coords.x, self.coords.y, self.coords.z, 0.0, 0.0, 0.0, 0.0, 180.0, 0.0, 1.0, 1.0, 1.0, zone.duty.marker.red, zone.duty.marker.green, zone.duty.marker.blue, zone.duty.marker.opacity, false, true, 2, false, nil, nil, false)
+                if self.currentDistance < 1.5 then
+                    if not lib.isTextUIOpen() then
+                        lib.showTextUI('[E] Toggle Duty')
+                    end
+                    if IsControlJustReleased(0, 38) then
+                        TriggerServerEvent('QBCore:ToggleDuty')
+                    end
                 end
-                if IsControlJustReleased(0, 38) then
-                    TriggerServerEvent('QBCore:ToggleDuty')
+                if self.currentDistance > 1.5 then
+                    lib.hideTextUI()
                 end
             end
-            if self.currentDistance > 1.5 then
-                lib.hideTextUI()
-            end
+            zones[zone.job].duty = point
         end
-        zones[zone.job].duty = point
     end
 end)
 
@@ -51,7 +68,10 @@ AddEventHandler('onResourceStop', function(resource)
     if resource == GetCurrentResourceName() then
         for _, zone in pairs(zones) do
             zone.zone:remove()
-            zone.duty:remove()
+            if not zone.duty then return end
+            if zone.duty.useTarget then
+                exports.ox_target:removeZone(zone.duty)
+            end
         end
     end
 end)

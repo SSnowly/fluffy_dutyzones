@@ -14,8 +14,9 @@ return {
             },
             duty = {
                 coords = vec3(370.6229, -612.3512, 28.8611),
-                distance = 3.0,
-                marker = {
+                distance = 3.0, 
+                useTarget = true, -- if enabled distance becomes the radius of the target
+                marker = { -- only required if useTarget is false
                     type = 2,
                     red = 255,
                     green = 0,
