@@ -6,18 +6,18 @@ local function isJob(job)
     return QBCore.Functions.GetPlayerData().job.name == job
 end
 
-local function IsOnDuty(job)
+local function isOnDuty(job)
     return QBCore.Functions.GetPlayerData().job.name == job and QBCore.Functions.GetPlayerData().job.onduty
 end
 
-function ExitJobZone(job)
+local function exitJobZone(job)
     if not isJob(job) then return end
-    local onDuty = IsOnDuty(job)
+    local onDuty = isOnDuty(job)
     if not onDuty then return end
     TriggerServerEvent('QBCore:ToggleDuty')
 end
 
-local function CreateJobBlip(job)
+local function createJobBlip(job)
     local zone = Config.Zones[job]
     if not zone.blip.enabled then return end
     local blip = AddBlipForCoord(zone.blip.coords.x, zone.blip.coords.y, zone.blip.coords.z)
@@ -33,13 +33,13 @@ local function CreateJobBlip(job)
 end
 
 CreateThread(function()
-    for _, zone in pairs(Config.Zones) do
-        zones[zone.job] = {}
-        zones[zone.job].zone = lib.zones.poly({
+    for job, zone in pairs(Config.Zones) do
+        zones[job] = {}
+        zones[job].zone = lib.zones.poly({
             points = zone.zone.points,
             thickness = zone.zone.thickness,
             debug = Config.Debug,
-            onExit = function() ExitJobZone(zone.job) end
+            onExit = function() exitJobZone(job) end
         })
         if not zone.duty then return end
         if zone.duty.useTarget then
@@ -55,7 +55,7 @@ CreateThread(function()
                     }
                 }
             })
-            zones[zone.job].duty = id
+            zones[job].duty = id
         else
             local point = lib.points.new({
                 coords = zone.duty.coords,
@@ -75,10 +75,10 @@ CreateThread(function()
                     lib.hideTextUI()
                 end
             end
-            zones[zone.job].duty = point
+            zones[job].duty = point
         end
         if not zone.blip.DutyRequired then
-            zones[zone.job].blip = CreateJobBlip(zone.job)
+            zones[job].blip = createJobBlip(job)
         end
     end
 end)
@@ -93,7 +93,7 @@ AddEventHandler('QBCore:Client:OnJobUpdate', function(JobInfo)
         end
         local zoneConfig = Config.Zones[JobInfo.name]
         if zoneConfig and zoneConfig.blip.enabled and zoneConfig.blip.DutyRequired and JobInfo.onduty then
-            zone.blip = CreateJobBlip(JobInfo.name)
+            zone.blip = createJobBlip(JobInfo.name)
         end
     end
 end)
@@ -102,10 +102,10 @@ RegisterNetEvent('QBCore:Client:OnPlayerLoaded')
 AddEventHandler('QBCore:Client:OnPlayerLoaded', function()
     local PlayerData = QBCore.Functions.GetPlayerData()
     if PlayerData.job then
-        local zone = zones[PlayerData.job.name]
+        local zone = Config.Zones[PlayerData.job.name]
         if zone then
             if zone.blip.enabled and zone.blip.DutyRequired and PlayerData.job.onduty then
-                zone.blip = CreateJobBlip(PlayerData.job.name)
+                zones[PlayerData.job.name].blip = createJobBlip(PlayerData.job.name)
             end
         end
     end
@@ -130,7 +130,7 @@ end)
 
 RegisterNetEvent('fluffy-dutyzones:client:AddDutyToJob', function(job, count)
     if count < 1 or not zones[job] then return end
-    zones[job].blip = CreateJobBlip(job)
+    zones[job].blip = createJobBlip(job)
 end)
 
 RegisterNetEvent('fluffy-dutyzones:client:RemoveDutyFromJob', function(job, count)
