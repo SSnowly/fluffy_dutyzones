@@ -1,7 +1,7 @@
 return {
     Debug = false,
     Zones = {
-        {
+        ["police"] = {
             job = 'police',
             zone = {    
                 points = {

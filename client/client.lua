@@ -18,16 +18,7 @@ function ExitJobZone(job)
 end
 
 local function CreateJobBlip(job)
-    local zone = nil
-    print(zone, job)
-    for _, zoneData in pairs(Config.Zones) do
-        print(zoneData.job, job)
-        if zoneData.job == job then
-            zone = zoneData
-            break
-        end
-    end
-    print(zone, job)
+    local zone = Config.Zones[job]
     if not zone.blip.enabled then return end
     local blip = AddBlipForCoord(zone.blip.coords.x, zone.blip.coords.y, zone.blip.coords.z)
     SetBlipSprite(blip, zone.blip.sprite)
@@ -94,22 +85,15 @@ end)
 
 RegisterNetEvent('QBCore:Client:OnJobUpdate')
 AddEventHandler('QBCore:Client:OnJobUpdate', function(JobInfo)
-    for job, data in pairs(zones) do
-        if JobInfo.name == job then
-            if data.blip then
-                RemoveBlip(data.blip)
-                data.blip = nil
-            end
-            local zoneConfig = nil
-            for _, zone in pairs(Config.Zones) do
-                if zone.job == job then
-                    zoneConfig = zone
-                    break
-                end
-            end
-            if zoneConfig and zoneConfig.blip.enabled and zoneConfig.blip.DutyRequired and JobInfo.onduty then
-                data.blip = CreateJobBlip(zoneConfig)
-            end
+    local zone = zones[JobInfo.name]
+    if zone then
+        if zone.blip then
+            RemoveBlip(zone.blip)
+            zone.blip = nil
+        end
+        local zoneConfig = Config.Zones[JobInfo.name]
+        if zoneConfig and zoneConfig.blip.enabled and zoneConfig.blip.DutyRequired and JobInfo.onduty then
+            zone.blip = CreateJobBlip(JobInfo.name)
         end
     end
 end)
@@ -118,9 +102,10 @@ RegisterNetEvent('QBCore:Client:OnPlayerLoaded')
 AddEventHandler('QBCore:Client:OnPlayerLoaded', function()
     local PlayerData = QBCore.Functions.GetPlayerData()
     if PlayerData.job then
-        for _, zone in pairs(Config.Zones) do
-            if zone.job == PlayerData.job.name and zone.blip.enabled and zone.blip.DutyRequired and PlayerData.job.onduty then
-                zones[zone.job].blip = CreateJobBlip(zone)
+        local zone = zones[PlayerData.job.name]
+        if zone then
+            if zone.blip.enabled and zone.blip.DutyRequired and PlayerData.job.onduty then
+                zone.blip = CreateJobBlip(PlayerData.job.name)
             end
         end
     end
